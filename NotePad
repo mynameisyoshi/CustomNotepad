@@ -1,0 +1,312 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package mytexteditor;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import javax.swing.*;
+import java.io.*;
+
+public class MyTextEditor extends JFrame {
+
+    private JMenuBar menuBar;
+    
+private JMenu fileMenu,editMenu, editFontMenu, editStyleMenu, aboutMenu;
+
+private JMenuItem newItem;
+private JMenuItem openItem;
+private JMenuItem saveItem;
+private JMenuItem saveAsItem;
+private JMenuItem exitItem;
+private JMenuItem aboutItem;
+
+private JRadioButtonMenuItem serifItem;
+private JRadioButtonMenuItem sanSerifItem;
+private String filename;     
+private JCheckBoxMenuItem italicItem;
+private JCheckBoxMenuItem boldItem;
+private final JTextArea editorText;
+
+ private final int NUM_LINES = 20;
+ private final int NUM_CHARS = 40;
+
+public MyTextEditor()
+{
+    setTitle("My Text Editor");
+    
+    editorText = new JTextArea(NUM_LINES, NUM_CHARS);
+    
+    editorText.setLineWrap(true);
+    editorText.setWrapStyleWord(true);
+    
+    JScrollPane scrollPane = new JScrollPane(editorText);
+    
+    add(scrollPane);
+    
+    buildMenuBar();
+    
+    pack();
+    setVisible(true);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+}
+
+private void buildMenuBar(){
+    
+    buildFileMenu();
+    buildEditMenu();
+    buildAboutMenu();
+    
+    menuBar = new JMenuBar();
+    
+    menuBar.add(fileMenu);
+    menuBar.add(editMenu);
+    menuBar.add(aboutMenu);
+    
+    setJMenuBar(menuBar);
+}
+
+private void buildFileMenu(){
+    
+    fileMenu = new JMenu("File");
+    fileMenu.setMnemonic('F');
+    
+    newItem = new JMenuItem("New");
+    newItem.setMnemonic(KeyEvent.VK_0);
+    newItem.addActionListener((ActionListener) new NewListener());
+    
+    openItem = new JMenuItem("Open");
+    openItem.setMnemonic(KeyEvent.VK_0);
+    openItem.addActionListener(new OpenListener());
+    
+    saveItem = new JMenuItem("Save");
+    saveItem.setMnemonic(KeyEvent.VK_S);
+    saveItem.addActionListener(new SaveListener());
+    
+    saveAsItem = new JMenuItem("Save As");
+    saveAsItem.setMnemonic(KeyEvent.VK_A);
+    saveAsItem.addActionListener(new SaveListener());
+    
+    exitItem = new JMenuItem("Exit");
+    exitItem.setMnemonic(KeyEvent.VK_X);
+    exitItem.addActionListener(new ExitListener());
+    
+    fileMenu.add(newItem);
+    fileMenu.add(openItem);
+    fileMenu.addSeparator();
+    fileMenu.add(saveItem);
+    fileMenu.add(saveAsItem);
+    fileMenu.addSeparator();
+    fileMenu.add(exitItem);
+        
+}
+
+private void buildEditMenu(){
+    editMenu = new JMenu("Edit");
+    editMenu.setMnemonic(KeyEvent.VK_E);
+    
+    buildEditFontMenu();
+    buildEditStyleMenu();    
+}
+
+private void buildEditFontMenu(){
+    
+    serifItem = new JRadioButtonMenuItem("Serif");
+    serifItem.addActionListener(new FontListener());
+    
+    sanSerifItem = new JRadioButtonMenuItem("Sans Serif");
+    sanSerifItem.addActionListener(new FontListener());
+    
+    ButtonGroup group = new ButtonGroup();
+    
+    group.add(serifItem);
+    group.add(sanSerifItem);
+    
+    editFontMenu = new JMenu("Font");
+    editFontMenu.setMnemonic(KeyEvent.VK_T);
+    
+    editFontMenu.add(serifItem);
+    editFontMenu.add(sanSerifItem);
+    
+    editMenu.add(editFontMenu);
+}
+
+private void buildEditStyleMenu(){
+    
+    italicItem = new JCheckBoxMenuItem("Italic");
+    italicItem.addActionListener(new FontListener());
+    
+    boldItem = new JCheckBoxMenuItem("Bold");
+    boldItem.addActionListener(new FontListener());
+    
+    editStyleMenu = new JMenu("Style");
+    editStyleMenu.setMnemonic(KeyEvent.VK_Y);
+    
+    editStyleMenu.add(italicItem);
+    editStyleMenu.add(boldItem);
+    
+    editMenu.add(editStyleMenu);
+}
+
+private void buildAboutMenu(){
+    aboutMenu = new JMenu("About");
+    aboutMenu.setMnemonic(KeyEvent.VK_A);
+    aboutItem = new JMenuItem("Created By: Harsh Joshi, ID: 821-447-638");
+    aboutMenu.add(aboutItem);
+}
+
+private class NewListener implements ActionListener
+{
+    @Override
+    public void actionPerformed(ActionEvent e){
+        editorText.setText("");
+        filename = null;
+    }
+}
+
+private class OpenListener implements ActionListener
+{
+    @Override
+    public void actionPerformed (ActionEvent e)
+    {
+        int chooserStatus;
+        
+        JFileChooser chooser = new JFileChooser();
+        chooserStatus = chooser.showOpenDialog(null);
+        if (chooserStatus == JFileChooser.APPROVE_OPTION)
+        {
+            File selectedFile = chooser.getSelectedFile();
+            
+            filename = selectedFile.getPath();
+            
+            if (!openFile(filename))
+            {
+                JOptionPane.showMessageDialog(null, "Error Reading" + filename, "Error", JOptionPane.ERROR_MESSAGE);
+                
+            }
+        }
+    }
+}
+
+private boolean openFile(String filename){
+    
+    boolean Success;
+    String inputLine, editorString = "";
+    FileReader freader;
+    BufferedReader inputFile;
+    
+    try
+    {
+        freader = new FileReader(filename);
+        inputFile = new BufferedReader(freader);
+        
+        inputLine = inputFile.readLine();
+        while (inputLine !=null)
+        {
+            editorString = editorString+ inputLine + "\n";
+            inputLine = inputFile.readLine();
+        }
+        editorText.setText(editorString);
+        
+        inputFile.close();
+        
+        Success = true;
+    }
+    catch (IOException e)
+    {
+    Success = false;
+    }
+        return Success;
+}
+
+ private class SaveListener implements ActionListener
+   {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+         int chooserStatus;
+ 
+         if (e.getActionCommand() == "Save As" || filename == null)
+         {
+            JFileChooser chooser = new JFileChooser();
+            chooserStatus = chooser.showSaveDialog(null);
+            if (chooserStatus == JFileChooser.APPROVE_OPTION)
+            {
+               File selectedFile = chooser.getSelectedFile();
+               filename = selectedFile.getPath();
+            }
+         }
+ 
+         if (!saveFile(filename))
+        {
+            JOptionPane.showMessageDialog(null,"Error saving " +filename, "Error", JOptionPane.ERROR_MESSAGE);
+         }
+      }
+ }
+
+ private boolean saveFile(String filename)
+      {
+         boolean success;
+         String editorString;
+         FileWriter fwriter;
+         PrintWriter outputFile;
+ 
+         try
+         {
+            fwriter = new FileWriter(filename);
+            outputFile = new PrintWriter(fwriter);
+            editorString = editorText.getText();
+            outputFile.print(editorString);
+ 
+            outputFile.close();
+
+            success = true;
+         }
+         catch (IOException e)
+         {
+             success = false;
+         }
+         return success;
+      }
+   
+   
+private class ExitListener implements ActionListener
+   {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+         System.exit(0);
+      }
+   
+   }
+   
+ private class FontListener implements ActionListener
+   {
+@Override
+public void actionPerformed(ActionEvent e)
+{
+    Font textFont = editorText.getFont();
+    
+    String fontName = textFont.getName();
+    int fontSize = textFont.getSize();
+    
+    int fontStyle = Font.PLAIN;
+    
+    if (serifItem.isSelected()) fontName = "Serif";
+    if (sanSerifItem.isSelected()) fontName = "Sans Serif";
+    
+    if (italicItem.isSelected()) fontStyle += Font.ITALIC;
+    if (boldItem.isSelected()) fontStyle += Font.BOLD;
+    
+    editorText.setFont(new Font(fontName, fontStyle, fontSize));
+}
+ }
+    public static void main(String[] args) {
+        new MyTextEditor();
+        
+    }
+
+ }
